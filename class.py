@@ -2,12 +2,20 @@ import random
 import pygame, sys
 from pygame import display
 from pygame.constants import K_DOWN, K_LEFT, K_UP
-movement = 0
+
+
+
+# Snake Initial Declarations
 score = 0
 start_pos = (300,300)
 screen_width = 600
 screen_height = 680
 screen = pygame.display.set_mode((screen_width,screen_height))
+pygame.init()
+clock = pygame.time.Clock()
+
+
+# Sprite Classes
 
 class Snake(pygame.sprite.Sprite):
     movement = 10
@@ -31,7 +39,6 @@ class Snake(pygame.sprite.Sprite):
             self.movement = 3
         if abs(self.direction - self.movement) != 2:
             self.direction = self.movement
-            
 
     def update_position(self):
         if self.direction == 0:
@@ -56,7 +63,6 @@ class Snake(pygame.sprite.Sprite):
     def update(self):
         self.rect.center = self.position
 
-
 class Body(pygame.sprite.Sprite):
     length = 0
     def __init__(self) -> None:
@@ -66,12 +72,8 @@ class Body(pygame.sprite.Sprite):
         self.position = (13,13)
         self.array = []
 
-        
-
     def update_body_part(self):
         self.rect.center = self.position
-
-
 
 class Food(pygame.sprite.Sprite):
     variable = 7
@@ -82,18 +84,19 @@ class Food(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.display_condition = False
     
-
     def generate(self):
         self.rect.center = (random.randint(1,600),random.randint(80,600))
         self.display_condition = True
 
-    
+class Walls(pygame.sprite.Sprite):
+    def __init__(self,position_x,position_y) -> None:
+        super().__init__()
+        self.image = pygame.image.load("1.jpg").convert_alpha()
+        self.rect = self.image.get_rect()
+        self.position = (position_x,position_y)
 
-
-    
-    
-    
-
+    def set_walls(self):
+        self.rect.center = self.position
 
 # Updating snake body
 def update_body():
@@ -111,21 +114,8 @@ def update_body():
     first_body.position = snake.position
     for x in body_group:
         x.update_body_part()            
-        
 
-        
-   
-    
-
-
-
-pygame.init()
-clock = pygame.time.Clock()
-body_group = pygame.sprite.Group()
-
-# Collision
-first_body = Body()
-
+# Collision with food
 def collision_food():
     if Body.length == 0:
         body_group.add(first_body)
@@ -133,47 +123,37 @@ def collision_food():
     else:
         body_group.add(Body())
         Body.length += 1
-    food.display_condition = False
+    food.display_condition = False        
+
+# Creating Walls
+def create_blocks_position(count,initial_x,initial_y,x_increament,y_increament):
+    for i in range(count):
+        x = initial_x + (x_increament * i)
+        y = initial_y + (y_increament * i)
+        walls_group.add(Walls(x,y))
+
+body_group = pygame.sprite.Group()
+first_body = Body()
+walls_group = pygame.sprite.Group()
+
+food = Food()
+food_group = pygame.sprite.GroupSingle()
+food_group.add(food)
 
 
-# def collision_food():
-#         food.collided()
-#         if Body.length == 0:
-#             Body.length += 1
-#         else:
-#             body_group.add(Body())
-#             Body.length += 1
+snake = Snake('3.jpg')
+snake_group = pygame.sprite.GroupSingle()
+snake_group.add(snake)
+
 text_font = pygame.font.Font('comic.ttf',50)
 display_screen = pygame.Rect(0, 0, 600, 80)
 text_font_50 = pygame.font.Font('comic.ttf',50)
 title = text_font_50.render('Snake Game',True,'Green')
 text_font_25 = pygame.font.Font('comic.ttf',25)
 score_display = text_font_25.render(f'Score = {score}',True,'Green')
-restart_text = text_font_25.render('Press SpaceBar to Restart or ESC to exit',True,'Blue')
-
-        
-    
-
-        
-        
-
-class Walls(pygame.sprite.Sprite):
-    def __init__(self,position_x,position_y) -> None:
-        super().__init__()
-        self.image = pygame.image.load("1.jpg").convert_alpha()
-        self.rect = self.image.get_rect()
-        self.position = (position_x,position_y)
-
-    def set_walls(self):
-        self.rect.center = self.position
-walls_group = pygame.sprite.Group()
+restart_text = text_font_25.render('Press SpaceBar to start or ESC to exit',True,'Blue')
 
 
-def create_blocks_position(count,initial_x,initial_y,x_increament,y_increament):
-    for i in range(count):
-        x = initial_x + (x_increament * i)
-        y = initial_y + (y_increament * i)
-        walls_group.add(Walls(x,y))
 
 create_blocks_position(29,107,87,14,0)
 create_blocks_position(29,107,673,14,0)
@@ -187,40 +167,27 @@ create_blocks_position(7,100,559,0,-14)
 for x in walls_group:
     x.set_walls()
 
-
-
-
-
-
-
-game_status = True
+# Setting game_status to False so that introductory window opens
+game_status = False
 # Initiating Screen and background
 background = pygame.image.load("grass.jpg").convert()
 
-food = Food()
-food_group = pygame.sprite.GroupSingle()
-food_group.add(food)
-
-
-snake = Snake('3.jpg')
-snake_group = pygame.sprite.GroupSingle()
-snake_group.add(snake)
-
+# Colors
 Blue = (0,0, 255)
 white = (255,255,255)
-start_time = 0
-time_to_chase = random.randint(17,25)
-time_not_eaten = random.randint(7,15)
-time_ate = random.randint(7,15)
 
-counter = 0
+# times to manage the food generation
+start_time = 0
+time_to_chase = random.randint(15,20)
+
+# Condition for the loop to run
 run_condition = True
+
 while run_condition:
     if game_status == True:
         for events in pygame.event.get():
             if events.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
         screen.fill(white)
         
         walls_group.draw(screen)
@@ -262,22 +229,40 @@ while run_condition:
         snake_group.draw(screen)
         if pygame.sprite.spritecollide(snake, body_group, False):
             game_status = False
-
+        if pygame.sprite.spritecollide(snake,walls_group,False):
+            game_status = False
         pygame.display.flip()
         clock.tick(30)
     else:
         screen.fill(white)
         pygame.draw.rect(screen,Blue,display_screen)
         screen.blit(title,(30,0))
-        score = text_font_25.render(f'Score = {score}',True,'Green')
-        screen.blit(score,(400,45))
+        
+        screen.blit(score_display,(400,45))
         screen.blit(restart_text,(50,300))
         pygame.display.flip()
         pygame.display.update()
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            game_status = True
-            score = 0
-        elif keys[pygame.K_ESCAPE]:
-            run_condition = False
+        for events in pygame.event.get():
+            if events.type == pygame.QUIT:
+                    pygame.quit()
+                    run_condition = False
+            if(events.type == pygame.KEYDOWN):
+                if(events.key == pygame.K_ESCAPE):
+                    run_condition = False
+                elif(events.key == pygame.K_SPACE):
+                    snake.movement = 10
+                    snake.position = start_pos
+                    pygame.sprite.Group.empty(body_group)
+                    game_status = True
+                    score = 0
+                    score_rect = text_font.render(f'Score = {score}',True,'Green')
 
+        
+
+# def collision_food():
+#         food.collided()
+#         if Body.length == 0:
+#             Body.length += 1
+#         else:
+#             body_group.add(Body())
+#             Body.length += 1
