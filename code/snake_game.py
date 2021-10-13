@@ -8,11 +8,11 @@ start_pos_x = 320
 start_pos_y = 240
 
 screen = pygame.display.set_mode((600,700))
-head = pygame.image.load('3.jpg').convert_alpha()
+head = pygame.image.load('images/head.jpg').convert_alpha()
 head_rect = head.get_rect(center = (320,240))
-body = pygame.image.load('2.jpg').convert_alpha()
+body = pygame.image.load('images/body.jpg').convert_alpha()
 body_rect = body.get_rect(center = (335,240))
-food = pygame.image.load('1.jpg').convert_alpha()
+food = pygame.image.load('images/food.jpg').convert_alpha()
 food_rect = food.get_rect(center = (300,300))
 bg = pygame.image.load('grass.jpg')
 position = [(start_pos_x,start_pos_y)]
